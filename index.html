@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vektorkräfte Kamera-App</title>
+    <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+    <style>
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; font-family: sans-serif; overflow: hidden; }
+        #header { padding: 15px; background: #333; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10; }
+        #ggb-container { flex-grow: 1; width: 100%; position: relative; }
+        input[type="file"] { display: none; }
+        .btn { background: #4CAF50; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; border: none; font-size: 16px; }
+        .btn:active { background: #45a049; transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <span style="font-weight: bold;">SZP Vektorkräfte 4.8</span>
+        <label for="imageInput" class="btn">📸 Foto einfügen</label>
+        <input type="file" id="imageInput" accept="image/*" capture="environment">
+    </div>
+
+    <div id="ggb-container">
+        <div id="ggb-element"></div>
+    </div>
+
+    <script>
+        // Deine spezifische GeoGebra ID
+        var ggbId = "g6cjmt2s";
+
+        var params = {
+            "material_id": ggbId,
+            "appName": "classic",
+            "width": window.innerWidth,
+            "height": window.innerHeight - 70,
+            "showToolBar": false,
+            "showAlgebraInput": false,
+            "showMenuBar": false,
+            "enableRightClick": false,
+            "enableLabelDrags": false,
+            "enableShiftDragZoom": true,
+            "errorDialogsActive": false,
+            "appletOnLoad": function(api) {
+                window.ggbApp = api;
+                // Verhindert, dass das Applet beim Laden zu klein ist
+                ggbApp.setSize(window.innerWidth, window.innerHeight - 70);
+            }
+        };
+
+        var applet = new GGBApplet(params, true);
+        window.onload = function() {
+            applet.inject('ggb-element');
+        };
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            if (!e.target.files[0]) return;
+            
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var imgData = event.target.result.split(',')[1];
+                
+                // 1. Altes Bild löschen, falls vorhanden
+                ggbApp.deleteObject("HintergrundBild");
+                
+                // 2. Bild in die GGB-Datei integrieren
+                ggbApp.evalJSON({
+                    "archive": [{ "name": "kamera_foto.png", "data": imgData }]
+                });
+                
+                // 3. Bild als Hintergrund-Objekt erzeugen
+                // Wir platzieren es großflächig im Koordinatensystem
+                // Du kannst die Koordinaten (-20, -10) anpassen, je nach deinem Koordinatensystem
+                ggbApp.evalCommand('HintergrundBild = Picture("kamera_foto.png", (-15, -10), (35, -10))');
+                
+                // 4. In den Hintergrund schieben (Layer 0) und fixieren
+                ggbApp.setLayer('HintergrundBild', 0);
+                ggbApp.setFixed('HintergrundBild', true, false);
+                
+                console.log("Foto erfolgreich geladen");
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // Responsive Anpassung bei Drehen des Handys
+        window.addEventListener('resize', function() {
+            if(window.ggbApp) {
+                ggbApp.setSize(window.innerWidth, window.innerHeight - 70);
+            }
+        });
+    </script>
+</body>
+</html>
